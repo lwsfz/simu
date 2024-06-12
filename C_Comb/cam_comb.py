@@ -1,13 +1,14 @@
-
-"""
-Camara de combustion
-Luis Fernandez
-
-"""
 import pyromat as pm
 import math
 
-def secant_method(func, x0, x1, max_iter=1000):
+#Configuración de laas unidades
+pm.config['unit_pressure'] = 'Pa'
+pm.config['unit_temperature'] = 'K'
+pm.config['unit_energy'] = 'kJ'
+pm.config['unit_mass'] = 'kg'
+pm.config['unit_volume'] = 'm3'
+
+def secant_method(func, x0, x1, max_iter=10000):
     """
     Encuentra una raíz de la función 'func' utilizando el método de la secante.
     
@@ -76,20 +77,20 @@ def cam_comb(variables, resultados_comp, T_out):
     mp_O2 = pm.get('ig.O2')
     
 
-    def calculate_n(n):
+    def calculate_n(n): #Función utilizada para el cálculo del exceso de aire (n)
     
-        #moles_productos/moles_cble
+        #kmoles_productos/kmoles_cble
         n_CO2=x
         n_H2O = y/2 
         n_N2 = n*(x+y/4)*79/21 
         n_O2_h= (n-1)*(x+y/4)
         P_H2O = n_H2O*P_T_in/(n_CO2+n_H2O+n_N2+n_O2_h)
         
-        #moles_reactivos/moles_cble
+        #kmoles_reactivos/kmoles_cble
         n_O2 = n*(x + y/4)
         #n_N2 = productos
         
-        #Masas molares
+        #Masas molares kg/kmol
         M_CO2 = 44 
         M_N2 = 28 
         M_H2O = 18
@@ -97,56 +98,60 @@ def cam_comb(variables, resultados_comp, T_out):
         M_cble = 12*x + y 
         
         
-        #entalpias productos
+        #entalpias productos kJ/Kg
         h_N2_h = mp_N2.h(T_out)
+        print(h_N2_h, 'h')
         h_N2_h_ref = mp_N2.h(T_ref)
         h_CO2 = mp_CO2.h(T_out)
         h_CO2_ref = mp_CO2.h(T_ref)
         
         h_H2O = mp_H2O.h(T=T_out, p=P_H2O)
-        h_H2O_ref = mp_H2O.h(T=T_ref, p=0.031)
+        h_H2O_ref = mp_H2O.h(T=T_ref, p=101325)
         h_O2_h = mp_O2.h(T_out)
         h_O2_h_ref = mp_O2.h(T_ref)
         
-        #entalpias reactivos
+        #entalpias reactivos kJ/kg
         h_N2 = mp_N2.h(T_in)
         h_N2_ref = mp_N2.h(T_ref)
         h_O2 = mp_O2.h(T_in)
         h_O2_ref = mp_O2.h(T_ref)
         
+        
         '''
         CALCULO DE DOSADO
         '''
-        #Funcion para calular la relacion de m_i/m_cble
+        
+        #Funcion para calular la relacion de masa_i/masa_cble
         def frac(n,M): #n = moles_i/moles_cble y M = masa molar_i
-            m = n*M/M_cble #kg_i/kg_mol
+            m = n*M/M_cble #kg_i/kg_cble
             return m  
         
-        #Funcion para calcular la energía generada por cada producto
+        #Funcion para calcular la energia generada por cada producto
         def energia(n,M,h_i,h_ref):
-            p = frac(n,M)*(h_i-h_ref)
+            p = frac(n,M)*(h_i-h_ref) #kJ/kg
             return p
         
          
-        #Función para el calculo de la fraccion másica de los reactivos
+        #Función para el calculo de la fraccion masica de los reactivos
         def fm(n,M):
             m_air = frac(n_N2,M_N2) + frac(n_O2,M_O2)
-            fm = frac(n,M)/m_air
+            fm = frac(n,M)/m_air #kg_i/kg_air
             return fm
-    
-        h_air = fm(n_N2,M_N2)*h_N2+fm(n_O2,M_O2)*h_O2
+        
+        #Entalpia del aire kJ/kg
+        h_air = fm(n_N2,M_N2)*h_N2+fm(n_O2,M_O2)*h_O2 
         h_air_ref = fm(n_N2,M_N2)*h_N2_ref+fm(n_O2,M_O2)*h_O2_ref
         
-        #energia aportada por el aire
-        energia_air = h_air - h_air_ref
+        #energia aportada por el aire kJ/kg
+        energia_air = h_air - h_air_ref 
         
-        #energia de los productos
+        #energia de los productos kJ/kg
         Energia_productos = energia(n_N2,M_N2,h_N2_h,h_N2_h_ref)+energia(n_CO2,M_CO2,h_CO2,h_CO2_ref)+energia(n_O2_h,M_O2,h_O2_h,h_O2_h_ref)+energia(n_H2O,M_H2O,h_H2O,h_H2O_ref)
         
         #dosado y masa de combustible
         f = energia_air/(Energia_productos-PC*eta)
-        m_cble = f*m_dot
-        #print(A,PC,p_air)
+        print(f)
+        m_cble = f*m_dot #kg/s
         
         #para la iteración de n
         a = (12*x + y)/(f*(32 + 28*79/21))
