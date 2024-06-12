@@ -14,17 +14,17 @@ pi = math.pi
 
 def secant_method(func, x0, x1,P_out, max_iter=1000):
     """
-    Encuentra una raíz de la función 'func' utilizando el método de la secante.
+    Encuentra una raiz de la funcion 'func' utilizando el metodo de la secante.
     
     Args:
-        func: La función para la cual se busca la raíz.
+        func: La función para la cual se busca la raiz.
         x0: Primer punto inicial.
         x1: Segundo punto inicial.
         tol: Tolerancia para el criterio de parada (por defecto es 1e-6).
-        max_iter: Número máximo de iteraciones permitidas (por defecto es 1000).
+        max_iter: Numero maximo de iteraciones permitidas (por defecto es 1000).
         
     Returns:
-        La aproximación de la raíz encontrada.
+        La aproximacion de la raiz encontrada.
     """
     iter_count = 0
     while iter_count < max_iter:
@@ -34,33 +34,8 @@ def secant_method(func, x0, x1,P_out, max_iter=1000):
             return func(x2,P_out)
         x0, x1 = x1, x2
         iter_count += 1
-    print("El método de la secante no convergió después de", max_iter, "iteraciones.")
-    return None
-
-def biseccion(func, a, b, P_out, tol=1e-6, max_iter=100000):
-    if func(a,P_out)[0] * func(b,P_out)[0] > 0:
-        raise ValueError("La función debe cambiar de signo en el intervalo [a, b].")
-    
-    elif func(a,P_out)[0] * func(b,P_out)[0] == 0:
-        
-        if func(a, P_out)[0] == 0:
-            return func(a, P_out)
-        
-        else:
-            return func(b, P_out)
-    else:
-        for t in range(max_iter):
-            c = (a + b) / 2
-            diferencia, T_out, c_out, P_out = func(c ,P_out)
-            print(diferencia)
-            if abs(diferencia) < tol:
-                return func(c, P_out)
-            
-            elif func(a,P_out)[0] * diferencia < 0:
-                b = c
-            else:
-                a = c
-        raise ValueError("El método de bisección no convergió después de", max_iter, " iteraciones.")    
+    print("El metodo de la secante no convergi0 después de", max_iter, "iteraciones.")
+    return None  
 
 def calculateMassFlow(A,v,rho): #Funcion que permite el calculo del flujo masico
             m_dot = rho * v * A
@@ -85,7 +60,7 @@ def difusor(variables): #Funcion principal del modulo
         H_comp = float(variables_difusor['H'])
         r_p = float(variables_difusor['r_p'])
         
-        #Calcular Temperatura y Presión de entrada [ecuaciones en K y Pa]
+        #Calcular Temperatura y Presion de entrada [ecuaciones en K y Pa]
         if H > 25000:
             
             T_in = -131.21 + 0.00299*H + 273
@@ -146,7 +121,7 @@ def difusor(variables): #Funcion principal del modulo
             dif = T_out-T
             return dif, T_out, c_out, P_out 
         
-        dif, T_out, c_out, P_out = secant_method(T_salida, 0.9*T_in, 2.1*T_in, 0.9*P_in) # se usa el metodo de la biseccion para encontrar la Temperatura y Presion a la salida
+        dif, T_out, c_out, P_out = secant_method(T_salida, 0.9*T_in, 2.1*T_in, 0.9*P_in) # se usa el metodo de la secante para encontrar la Temperatura y Presion a la salida
         
         '''
         resultados de interes del difusor:
@@ -187,7 +162,4 @@ if __name__ == '__main__':
         'H' : 0.04287,
         'rm': 0.21425}]
     
-    i = 0
-    m_dot = 0
-    
-    print(difusor(variables, i, m_dot))
+    print(difusor(variables))
