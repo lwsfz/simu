@@ -109,7 +109,6 @@ def guardar_resultados_txt(archivo, num_prueba, variable, valor, resultados):
         else:
             raise('Introduzca una variable válida: altura o RPM.')
         f.write("\n")
-main
 
 def secant_method(func, x0, x1, max_iter=1000):
     """
